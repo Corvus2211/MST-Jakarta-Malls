@@ -10,5 +10,5 @@ This repository includes our implementation of the following algorithms:
 1. Kruskal's algorithm: https://ieeexplore.ieee.org/document/9077616
 2. Prim's algorithm: https://ieeexplore.ieee.org/document/9077616
 
-## Dataset:
+## Nodes:
 Link:
