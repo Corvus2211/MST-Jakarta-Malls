@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <chrono>
 #include <iomanip>  
+using namespace std;
 
 #define NUM_VERTICES 25
 
@@ -74,10 +75,10 @@ void kruskalMST(int vertices, float edges[][3], int numEdges)
     makeSet(parent, rank, vertices);
     float minCost = 0.0;
 
-    std::cout << "Edges in the Minimum Spanning Tree (Kruskal):\n";
-    std::cout << "-----------------------------------\n";
-    std::cout << std::setw(10) << "Vertex 1" << std::setw(10) << "Vertex 2" << std::setw(10) << "Edge Weight\n";
-    std::cout << "-----------------------------------\n";
+    cout << "Edges in the Minimum Spanning Tree (Kruskal):\n";
+    cout << "-----------------------------------\n";
+    cout << setw(10) << "Vertex 1" << setw(10) << "Vertex 2" << setw(10) << "Edge Weight\n";
+    cout << "-----------------------------------\n";
     
     for (int i = 0; i < numEdges; i++)
     {
@@ -89,12 +90,12 @@ void kruskalMST(int vertices, float edges[][3], int numEdges)
         {
             unionSet(v1, v2, parent, rank);
             minCost += wt;
-            std::cout << std::setw(10) << (int)edges[i][0] << std::setw(10) << (int)edges[i][1] << std::setw(10) << std::fixed << std::setprecision(1) << wt << "\n";
+            cout << setw(10) << (int)edges[i][0] << setw(10) << (int)edges[i][1] << setw(10) << fixed << setprecision(1) << wt << "\n";
         }
     }
 
-    std::cout << "-----------------------------------\n";
-    std::cout << "Total Minimum Cost (Kruskal)'s Algo): " << std::fixed << std::setprecision(1) << minCost << "\n";
+    cout << "-----------------------------------\n";
+    cout << "Total Minimum Cost (Kruskal)'s Algo: " << fixed << setprecision(1) << minCost << " km" << "\n";
 }
 
 // driver code
@@ -128,15 +129,15 @@ int main()
     int numEdges = sizeof(edges) / sizeof(edges[0]);
 
     // start timing
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = chrono::high_resolution_clock::now();
 
     kruskalMST(NUM_VERTICES, edges, numEdges);
 
     // end timing
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = end - start;
+    auto end = chrono::high_resolution_clock::now();
+    chrono::duration<double> duration = end - start;
 
-    std::cout << "\nRuntime: " << std::fixed << std::setprecision(6) << duration.count() << " seconds\n";
+    cout << "\nRuntime: " << fixed << setprecision(6) << duration.count() << " seconds\n";
 
     return 0;
 }
