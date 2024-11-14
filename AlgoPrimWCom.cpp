@@ -40,7 +40,7 @@ void printMST(int parent[], double graph[V][V])
     }
 
     cout << "-----------------------------------------\n";
-    cout << "Total Minimum Spanning Cost: " << totalCost << "\n";
+    cout << "Total Minimum Cost (Prim)'s Algo: " << totalCost << " km" << "\n";
 }
 
 // function to construct and print MST for a graph represented using adjacency matrix representation
@@ -102,7 +102,7 @@ int main()
         int v = edge[1];
         double weight = edge[2];
         graph[u][v] = weight;
-        graph[v][u] = weight; // Since the graph is undirected
+        graph[v][u] = weight; // since the graph is undirected
     }
 
     // measure the execution time of primMST function
@@ -112,7 +112,7 @@ int main()
 
     // calculate the duration and display it
     chrono::duration<double> duration = end - start;
-    cout << "Execution Time: " << duration.count() << " seconds\n";
+    cout << "\nRuntime: " << fixed << setprecision(6) << duration.count() << " seconds\n";
 
     return 0;
 }
