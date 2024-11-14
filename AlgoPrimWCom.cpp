@@ -26,7 +26,7 @@ int minKey(double key[], bool mstSet[])
 void printMST(int parent[], double graph[V][V]) 
 {
     double totalCost = 0.0;
-    cout << "\nMinimum Spanning Tree (MST) Edges and Weights (Prim's Algorithm):\n";
+    cout << "\nMinimum Spanning Tree (MST) Edges and Weights (Prim):\n";
     cout << "-----------------------------------------\n";
     cout << "Vertex 1\tVertex 2\tEdge Weight\n";
     cout << "-----------------------------------------\n";
