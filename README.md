@@ -13,7 +13,7 @@ The goal is to compare the effectiveness of these algorithms in constructing pat
 ## Algorithms;
 This repository includes our implementation of the following algorithms:
 1. Kruskal's algorithm: https://ieeexplore.ieee.org/document/9077616
-2. Prim's algorithm: https://ieeexplore.ieee.org/document/9077616
+2. Prim's algorithm   : https://ieeexplore.ieee.org/document/9077616
 
 ## Journal
 Link:
