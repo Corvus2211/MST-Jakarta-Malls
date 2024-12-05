@@ -16,4 +16,4 @@ This repository includes our implementation of the following algorithms:
 2. Prim's algorithm   : https://ieeexplore.ieee.org/document/9077616
 
 ## Journal
-Link: https://bit.ly/Prim-Kruskal-DAA
+Link: bit.ly/DAA-Prim-Kruskal
