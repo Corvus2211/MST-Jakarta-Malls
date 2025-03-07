@@ -29,7 +29,7 @@ typedef struct _PROCESS_MEMORY_COUNTERS {
 
 using namespace std;
 
-#define V 25  
+#define V 36  
 
 int minKey(double key[], bool mstSet[]) 
 {

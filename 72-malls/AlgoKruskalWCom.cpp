@@ -5,7 +5,7 @@
 
 using namespace std;
 
-#define NUM_VERTICES 25
+#define NUM_VERTICES 72
 
 // comparator function to use in sorting
 int comparator(const void* p1, const void* p2) 

@@ -2,7 +2,7 @@
 #include <chrono>  // for measuring execution time
 using namespace std;
 
-#define V 25  
+#define V 60
 
 // function to find the vertex with the minimum key value, from the set of vertices not yet included in MST
 int minKey(double key[], bool mstSet[]) 

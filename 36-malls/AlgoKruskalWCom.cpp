@@ -29,7 +29,7 @@ typedef struct _PROCESS_MEMORY_COUNTERS {
 
 using namespace std;
 
-#define NUM_VERTICES 25
+#define NUM_VERTICES 36
 
 //comparator for qsort (compares the weight in element [2])
 int comparator(const void* p1, const void* p2) 
