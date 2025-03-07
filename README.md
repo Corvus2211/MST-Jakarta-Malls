@@ -1,5 +1,6 @@
 # Optimizing MRT Pathways between Jakarta Malls: Comparative Study of Kruskal and Prim Algorithms
-This github is made for a Design and Analysis of Algorithms (DAA) and is made by undergraduates of Informatics Bachelor Degree in Universitas Pelita Harapan of Lippo Village, Banten, Indonesia.
+
+This GitHub repository serves as a platform for a research journal exploring the Design and Analysis of Algorithms (DAA), specifically focusing on a comparative study of Prim’s and Kruskal’s algorithms in optimizing MRT pathways in Jakarta. This project is a collaborative effort between a lecturer and undergraduate students from the Informatics Bachelor’s Program at Universitas Pelita Harapan, Lippo Village, Banten, Indonesia.
 - Robertus Hudi
 - Annabel Kineta Jovinne Caron
 - Mikael Silvano
