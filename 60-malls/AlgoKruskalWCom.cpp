@@ -1,105 +1,114 @@
+#ifdef _WIN32
+#define _WIN32_WINNT 0x0600
+#include <windows.h>
+#ifndef PPROCESS_MEMORY_COUNTERS
+typedef struct _PROCESS_MEMORY_COUNTERS {
+    DWORD cb;
+    DWORD PageFaultCount;
+    SIZE_T PeakWorkingSetSize;
+    SIZE_T WorkingSetSize;
+    SIZE_T QuotaPeakPagedPoolUsage;
+    SIZE_T QuotaPagedPoolUsage;
+    SIZE_T QuotaPeakNonPagedPoolUsage;
+    SIZE_T QuotaNonPagedPoolUsage;
+    SIZE_T PagefileUsage;
+    SIZE_T PeakPagefileUsage;
+} PROCESS_MEMORY_COUNTERS, *PPROCESS_MEMORY_COUNTERS;
+#endif
+#endif
+
 #include <iostream>
 #include <cstdlib>
 #include <chrono>
-#include <iomanip>  
+#include <iomanip>
+#ifdef _WIN32
+#else
+#include <sys/resource.h>
+#include <sys/time.h>
+#endif
 
 using namespace std;
 
 #define NUM_VERTICES 60
 
-// comparator function to use in sorting
+//comparator for qsort (compares the weight in element [2])
 int comparator(const void* p1, const void* p2) 
 {
-    // p1 and p2 to float (*)[3] to interpret as pointers to arrays of 3 float values, used to access the edge  weight/cost (km) stored in the third position [2]
     float(*x)[3] = (float(*)[3])p1;
     float(*y)[3] = (float(*)[3])p2;
-
-    // (*x)[2] and (*y)[2] access the weights of the two edges being compared
-    /*   
-         1 if (*x)[2] (weight of the first edge) is greater than (*y)[2]
-        -1 if (*x)[2] is less than (*y)[2]
-         0 if the weights are equal
-    */
-    return ((*x)[2] > (*y)[2]) - ((*x)[2] < (*y)[2]); // compare float values; return 1 / 0 / -1
-
+    return ((*x)[2] > (*y)[2]) - ((*x)[2] < (*y)[2]);
 }
 
-// initialization of parent[] and rank[] arrays
 void makeSet(int parent[], int rank[], int n)
 {
-    for (int i = 0; i < n; i++) 
-    {
-        parent[i] = i; // each vertex is initially its own parent
-        rank[i] = 0;  // initialize rank (used to balance the tree)
+    for (int i = 0; i < n; i++) {
+        parent[i] = i;
+        rank[i] = 0;
     }
 }
 
-// function to find the parent of a node
 int findParent(int parent[], int component)
 {
     if (parent[component] == component)
-    {
         return component;
-    }
-
     return parent[component] = findParent(parent, parent[component]);
 }
 
-// function to unite two sets
 void unionSet(int u, int v, int parent[], int rank[])
 {
     u = findParent(parent, u);
     v = findParent(parent, v);
-
     if (rank[u] < rank[v])
-    {
         parent[u] = v;
-    }
     else if (rank[u] > rank[v])
-    {
         parent[v] = u;
-    }
-    else
-    {
+    else {
         parent[v] = u;
         rank[u]++;
     }
 }
 
-// function to find the MST
-void kruskalMST(int vertices, float edges[][3], int numEdges)
+float kruskalMST(int vertices, float edges[][3], int numEdges, bool printOutput = true)
 {
     qsort(edges, numEdges, sizeof(edges[0]), comparator);
-
     int parent[vertices];
     int rank[vertices];
     makeSet(parent, rank, vertices);
     float minCost = 0.0;
 
-    cout << "Edges in the Minimum Spanning Tree (Kruskal):\n";
-    cout << "-----------------------------------\n";
-    cout << setw(10) << "Vertex 1" << setw(10) << "Vertex 2" << setw(10) << "Edge Weight\n";
-    cout << "-----------------------------------\n";
+    if (printOutput) {
+        cout << "Edges in the Minimum Spanning Tree (Kruskal):\n";
+        cout << "-----------------------------------\n";
+        cout << setw(10) << "Vertex 1" 
+             << setw(10) << "Vertex 2" 
+             << setw(10) << "Weight" << "\n";
+        cout << "-----------------------------------\n";
+    }
     
-    for (int i = 0; i < numEdges; i++)
-    {
+    for (int i = 0; i < numEdges; i++) {
         int v1 = findParent(parent, (int)edges[i][0]);
         int v2 = findParent(parent, (int)edges[i][1]);
         float wt = edges[i][2];
 
-        if (v1 != v2)
-        {
+        if (v1 != v2) {
             unionSet(v1, v2, parent, rank);
             minCost += wt;
-            cout << setw(10) << (int)edges[i][0] << setw(10) << (int)edges[i][1] << setw(10) << fixed << setprecision(1) << wt << "\n";
+            if (printOutput)
+                cout << setw(10) << (int)edges[i][0] 
+                     << setw(10) << (int)edges[i][1] 
+                     << setw(10) << fixed << setprecision(1) << wt << "\n";
         }
     }
-
-    cout << "-----------------------------------\n";
-    cout << "Total Minimum Cost (Kruskal)'s Algo: " << fixed << setprecision(1) << minCost << " km" << "\n";
+    
+    if (printOutput) {
+        cout << "-----------------------------------\n";
+        cout << "Total Minimum Cost (Kruskal)'s Algo: " 
+             << fixed << setprecision(1) << minCost << " km" << "\n";
+        cout.flush();
+    }
+    return minCost;
 }
 
-// driver code
 int main()
 {
     float edges[][3] = 
@@ -237,21 +246,89 @@ int main()
         {41, 58, 15.0},
         {39, 59, 5.9},
         {10, 59, 13.6},
-        {46, 59, 3.2},
+        {46, 59, 3.2}
     };
-
     int numEdges = sizeof(edges) / sizeof(edges[0]);
 
-    // start timing
-    auto start = chrono::high_resolution_clock::now();
+    float initialCost = kruskalMST(NUM_VERTICES, edges, numEdges, true);
 
-    kruskalMST(NUM_VERTICES, edges, numEdges);
+    const int iterations = 1000000;  // 1,000,000 iterations
+    volatile float dummyCost = 0.0f;  // Prevent optimization.
+    auto perfStart = chrono::steady_clock::now();
+    for (int i = 0; i < iterations; i++) {
+         dummyCost += kruskalMST(NUM_VERTICES, edges, numEdges, false);
+    }
+    auto perfEnd = chrono::steady_clock::now();
+    chrono::duration<double> perfDuration = perfEnd - perfStart;
+    double totalDuration = perfDuration.count();
+    double avgDuration = totalDuration / iterations;
+    cout << "\nTotal runtime for " << iterations << " iterations: " 
+         << fixed << setprecision(6) << totalDuration << " seconds\n";
+    cout << "Average runtime per iteration: " 
+         << fixed << setprecision(9) << avgDuration << " seconds\n";
+    cout.flush();
 
-    // end timing
-    auto end = chrono::high_resolution_clock::now();
-    chrono::duration<double> duration = end - start;
+#ifdef _WIN32
+    //get CPU times using Windows API.
+    FILETIME creationTime, exitTime, kernelTime, userTime;
+    double userSeconds = 0.0, kernelSeconds = 0.0;
+    if (GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime)) {
+         ULARGE_INTEGER uKernel, uUser;
+         uKernel.LowPart = kernelTime.dwLowDateTime;
+         uKernel.HighPart = kernelTime.dwHighDateTime;
+         uUser.LowPart = userTime.dwLowDateTime;
+         uUser.HighPart = userTime.dwHighDateTime;
+         kernelSeconds = uKernel.QuadPart / 10000000.0;
+         userSeconds = uUser.QuadPart / 10000000.0;
+         cout << "User CPU time: " << userSeconds << " seconds\n";
+         cout << "Kernel CPU time: " << kernelSeconds << " seconds\n";
+    } else {
+         cout << "GetProcessTimes failed.\n";
+    }
+    double totalCPU = userSeconds + kernelSeconds;
+    //normalize CPU usage by dividing by the number of logical processors
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    int numProcessors = sysInfo.dwNumberOfProcessors;
+    double normalizedCpuPercent = (totalCPU / totalDuration) * 100.0 / numProcessors;
+    cout << "% CPU used by process (normalized to total capacity): " 
+         << fixed << setprecision(2) << normalizedCpuPercent << "%" << "\n";
 
-    cout << "\nRuntime: " << fixed << setprecision(6) << duration.count() << " seconds\n";
-
+    //load psapi.dll and obtain current memory usage
+    HMODULE hPsapi = GetModuleHandleA("psapi.dll");
+    if (!hPsapi)
+         hPsapi = LoadLibraryA("psapi.dll");
+    typedef BOOL (WINAPI *LPFN_GetProcessMemoryInfo)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
+    LPFN_GetProcessMemoryInfo fnGetProcessMemoryInfo =
+        (LPFN_GetProcessMemoryInfo)GetProcAddress(hPsapi, "GetProcessMemoryInfo");
+    if(fnGetProcessMemoryInfo != NULL) {
+         PROCESS_MEMORY_COUNTERS pmc;
+         pmc.cb = sizeof(pmc);
+         if(fnGetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+             cout << "Current Memory usage: " << pmc.WorkingSetSize / 1024 << " kilobytes\n";
+         } else {
+             cout << "Current Memory usage: not available (call failed)\n";
+         }
+    } else {
+         cout << "Current Memory usage: not available (function not loaded)\n";
+    }
+#else
+    //unix-like systems: use getrusage for CPU and memory usage
+    struct rusage usage;
+    if(getrusage(RUSAGE_SELF, &usage) == 0) {
+        cout << "User CPU time: " << usage.ru_utime.tv_sec << "."
+             << setfill('0') << setw(6) << usage.ru_utime.tv_usec << " seconds\n";
+        cout << "System CPU time: " << usage.ru_stime.tv_sec << "."
+             << setfill('0') << setw(6) << usage.ru_stime.tv_usec << " seconds\n";
+        double totalCPU = usage.ru_utime.tv_sec + usage.ru_utime.tv_usec/1e6 +
+                          usage.ru_stime.tv_sec + usage.ru_stime.tv_usec/1e6;
+        double cpuPercent = (totalDuration > 0.0 ? (totalCPU / totalDuration) * 100.0 : 0.0);
+        cout << "% CPU used by process: " << fixed << setprecision(2) << cpuPercent << "%" << "\n";
+        cout << "Max memory usage: " << usage.ru_maxrss << " kilobytes\n";
+    } else {
+        perror("getrusage");
+    }
+#endif
+    cout.flush();
     return 0;
 }
