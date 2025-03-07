@@ -1,10 +1,9 @@
 # Optimizing MRT Pathways between Jakarta Malls: Comparative Study of Kruskal and Prim Algorithms
 This github is made for a Design and Analysis of Algorithms (DAA) and is made by undergraduates of Informatics Bachelor Degree in Universitas Pelita Harapan of Lippo Village, Banten, Indonesia.
-- Annabel K. Jovinne C.
-- Mikael S.
-- Bryan S. Yo
-- Tirta M. Simangunsong
-- Putra M. Asri 
+- Robertus Hudi
+- Annabel Kineta Jovinne Caron
+- Mikael Silvano
+- Bryan Susanto Yo
 
 This research focuses on optimizing the Mass Rapid Transit (MRT) network in Jakarta by creating efficient pathways that link major shopping malls, aiming to enhance transit accessibility and reduce congestion in the city. The study explores the application of Minimum Spanning Tree (MST) algorithms, specifically Kruskal's and Prim's, to design cost-effective transport routes. By analyzing the time and space complexity of these algorithms, the research seeks to understand how they perform under different input conditions, such as the size of the network. Kruskal's algorithm, which operates in O(e log n), is edge-based and selects the smallest available edge regardless of vertex connectivity. Prim's algorithm, on the other hand, operates in O(V²) and is vertex-based, starting from an arbitrary vertex and expanding by selecting the smallest connecting edge from visited vertices. 
 
