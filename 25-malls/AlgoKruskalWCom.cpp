@@ -22,7 +22,6 @@ typedef struct _PROCESS_MEMORY_COUNTERS {
 #include <chrono>
 #include <iomanip>
 #ifdef _WIN32
-// We'll load GetProcessMemoryInfo dynamically.
 #else
 #include <sys/resource.h>
 #include <sys/time.h>
@@ -32,7 +31,7 @@ using namespace std;
 
 #define NUM_VERTICES 25
 
-// Comparator for qsort (compares the weight in element [2])
+//comparator for qsort (compares the weight in element [2])
 int comparator(const void* p1, const void* p2) 
 {
     float(*x)[3] = (float(*)[3])p1;
@@ -40,7 +39,6 @@ int comparator(const void* p1, const void* p2)
     return ((*x)[2] > (*y)[2]) - ((*x)[2] < (*y)[2]);
 }
 
-// Initialize parent and rank arrays
 void makeSet(int parent[], int rank[], int n)
 {
     for (int i = 0; i < n; i++) {
@@ -49,7 +47,6 @@ void makeSet(int parent[], int rank[], int n)
     }
 }
 
-// Find the parent of a node (with path compression)
 int findParent(int parent[], int component)
 {
     if (parent[component] == component)
@@ -57,7 +54,6 @@ int findParent(int parent[], int component)
     return parent[component] = findParent(parent, parent[component]);
 }
 
-// Union two sets (by rank)
 void unionSet(int u, int v, int parent[], int rank[])
 {
     u = findParent(parent, u);
@@ -72,8 +68,6 @@ void unionSet(int u, int v, int parent[], int rank[])
     }
 }
 
-// Modified Kruskal MST function that computes the MST and returns the total cost.
-// The printOutput flag controls whether the MST details are printed.
 float kruskalMST(int vertices, float edges[][3], int numEdges, bool printOutput = true)
 {
     qsort(edges, numEdges, sizeof(edges[0]), comparator);
@@ -117,7 +111,6 @@ float kruskalMST(int vertices, float edges[][3], int numEdges, bool printOutput 
 
 int main()
 {
-    // Define the edge list.
     float edges[][3] = 
     {
         {0, 1, 4.5}, {0, 20, 2.4}, {0, 21, 2.4}, {1, 2, 5.5}, {1, 3, 10.5},
@@ -134,10 +127,8 @@ int main()
     };
     int numEdges = sizeof(edges) / sizeof(edges[0]);
 
-    // Run Kruskal once with output.
     float initialCost = kruskalMST(NUM_VERTICES, edges, numEdges, true);
 
-    // Run Kruskal repeatedly for performance measurement.
     const int iterations = 1000000;  // 1,000,000 iterations
     volatile float dummyCost = 0.0f;  // Prevent optimization.
     auto perfStart = chrono::steady_clock::now();
@@ -155,7 +146,7 @@ int main()
     cout.flush();
 
 #ifdef _WIN32
-    // Get CPU times using Windows API.
+    //get CPU times using Windows API.
     FILETIME creationTime, exitTime, kernelTime, userTime;
     double userSeconds = 0.0, kernelSeconds = 0.0;
     if (GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime)) {
@@ -172,7 +163,7 @@ int main()
          cout << "GetProcessTimes failed.\n";
     }
     double totalCPU = userSeconds + kernelSeconds;
-    // Normalize CPU usage by dividing by the number of logical processors.
+    //normalize CPU usage by dividing by the number of logical processors
     SYSTEM_INFO sysInfo;
     GetSystemInfo(&sysInfo);
     int numProcessors = sysInfo.dwNumberOfProcessors;
@@ -180,7 +171,7 @@ int main()
     cout << "% CPU used by process (normalized to total capacity): " 
          << fixed << setprecision(2) << normalizedCpuPercent << "%" << "\n";
 
-    // Load psapi.dll and obtain current memory usage.
+    //load psapi.dll and obtain current memory usage
     HMODULE hPsapi = GetModuleHandleA("psapi.dll");
     if (!hPsapi)
          hPsapi = LoadLibraryA("psapi.dll");
@@ -199,7 +190,7 @@ int main()
          cout << "Current Memory usage: not available (function not loaded)\n";
     }
 #else
-    // Unix-like systems: use getrusage for CPU and memory usage.
+    //unix-like systems: use getrusage for CPU and memory usage
     struct rusage usage;
     if(getrusage(RUSAGE_SELF, &usage) == 0) {
         cout << "User CPU time: " << usage.ru_utime.tv_sec << "."
