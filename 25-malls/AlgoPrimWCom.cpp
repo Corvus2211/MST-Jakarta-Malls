@@ -21,17 +21,16 @@ typedef struct _PROCESS_MEMORY_COUNTERS {
 #include <chrono>
 #include <iomanip>
 #ifdef _WIN32
-// We'll load GetProcessMemoryInfo dynamically.
 #else
 #include <sys/resource.h>
 #include <sys/time.h>
+#include <unistd.h>
 #endif
 
 using namespace std;
 
 #define V 25  
 
-// Function to find the vertex with the minimum key value not yet included in MST.
 int minKey(double key[], bool mstSet[]) 
 {
     double minVal = DBL_MAX;
@@ -45,8 +44,6 @@ int minKey(double key[], bool mstSet[])
     return min_index;
 }
 
-// Modified Prim MST function that returns the computed total cost.
-// The printOutput flag controls whether MST details are printed.
 double primMSTPerf(double graph[V][V], bool printOutput = true)
 {
     int parent[V];
@@ -74,7 +71,7 @@ double primMSTPerf(double graph[V][V], bool printOutput = true)
     if (printOutput) {
         cout << "\nMinimum Spanning Tree (MST) Edges and Weights (Prim):\n";
         cout << "-----------------------------------------\n";
-        cout << "Vertex 1\tVertex 2\t Weight\n";
+        cout << "Vertex 1\tVertex 2\tEdge Weight\n";
         cout << "-----------------------------------------\n";
     }
     for (int i = 1; i < V; i++) {
@@ -94,9 +91,9 @@ double primMSTPerf(double graph[V][V], bool printOutput = true)
 
 int main() 
 {
-    double graph[V][V] = {0};  // Initialize the graph matrix with zeros.
+    double graph[V][V] = {0};  
 
-    // Define edges with weights (undirected graph)
+    //edge list data (undirected graph)
     double edges[][3] = 
     {
         {0, 1, 4.5}, {0, 20, 2.4}, {0, 21, 2.4}, {1, 2, 5.5}, {1, 3, 10.5},
@@ -113,7 +110,7 @@ int main()
     };
     int numEdges = sizeof(edges) / sizeof(edges[0]);
 
-    // Populate the graph matrix from the edge list.
+    //build the graph matrix from the edge list.
     for (auto &edge : edges) {
         int u = edge[0];
         int v = edge[1];
@@ -122,10 +119,10 @@ int main()
         graph[v][u] = weight;
     }
 
-    // Run the Prim algorithm once with output to show the MST.
+    //run the Prim algorithm once with output.
     double initialCost = primMSTPerf(graph, true);
 
-    // To obtain measurable CPU time, run the Prim MST repeatedly.
+    //run the Prim MST repeatedly to get measurable timing.
     const int iterations = 1000000;  // 1,000,000 iterations
     volatile double dummyCost = 0.0;   // Prevent optimization.
     auto perfStart = chrono::steady_clock::now();
@@ -143,7 +140,7 @@ int main()
     cout.flush();
 
 #ifdef _WIN32
-    // Get CPU times using Windows API.
+    //retrieve CPU times using Windows API.
     FILETIME creationTime, exitTime, kernelTime, userTime;
     double userSeconds = 0.0, kernelSeconds = 0.0;
     if (GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime))
@@ -163,10 +160,14 @@ int main()
          cout << "GetProcessTimes failed.\n";
     }
     double totalCPU = userSeconds + kernelSeconds;
-    double cpuPercent = (totalDuration > 0.0 ? (totalCPU / totalDuration) * 100.0 : 0.0);
-    cout << "% CPU used by process: " << fixed << setprecision(2) << cpuPercent << "%" << "\n";
+    //normalize by number of logical processors
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    int numProcessors = sysInfo.dwNumberOfProcessors;
+    double normalizedCpuPercent = (totalCPU / totalDuration) * 100.0 / numProcessors;
+    cout << "% CPU used by process (normalized to total capacity): " 
+         << fixed << setprecision(2) << normalizedCpuPercent << "%" << "\n";
 
-    // Ensure psapi.dll is loaded (try LoadLibrary if necessary)
     HMODULE hPsapi = GetModuleHandleA("psapi.dll");
     if (!hPsapi)
          hPsapi = LoadLibraryA("psapi.dll");
@@ -191,7 +192,6 @@ int main()
          cout << "Current Memory usage: not available (function not loaded)\n";
     }
 #else
-    // Unix-like systems: use getrusage for CPU times and memory usage.
     struct rusage usage;
     if(getrusage(RUSAGE_SELF, &usage) == 0)
     {
@@ -201,8 +201,10 @@ int main()
              << setfill('0') << setw(6) << usage.ru_stime.tv_usec << " seconds\n";
         double totalCPU = usage.ru_utime.tv_sec + usage.ru_utime.tv_usec/1e6 +
                           usage.ru_stime.tv_sec + usage.ru_stime.tv_usec/1e6;
-        double cpuPercent = (totalDuration > 0.0 ? (totalCPU / totalDuration) * 100.0 : 0.0);
-        cout << "% CPU used by process: " << fixed << setprecision(2) << cpuPercent << "%" << "\n";
+        int numProcessors = sysconf(_SC_NPROCESSORS_ONLN);
+        double normalizedCpuPercent = (totalCPU / totalDuration) * 100.0 / numProcessors;
+        cout << "% CPU used by process (normalized): " 
+             << fixed << setprecision(2) << normalizedCpuPercent << "%" << "\n";
         cout << "Max memory usage: " << usage.ru_maxrss << " kilobytes\n";
     }
     else

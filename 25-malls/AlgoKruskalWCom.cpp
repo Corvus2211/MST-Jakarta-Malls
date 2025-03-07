@@ -43,8 +43,7 @@ int comparator(const void* p1, const void* p2)
 // Initialize parent and rank arrays
 void makeSet(int parent[], int rank[], int n)
 {
-    for (int i = 0; i < n; i++) 
-    {
+    for (int i = 0; i < n; i++) {
         parent[i] = i;
         rank[i] = 0;
     }
@@ -67,15 +66,14 @@ void unionSet(int u, int v, int parent[], int rank[])
         parent[u] = v;
     else if (rank[u] > rank[v])
         parent[v] = u;
-    else 
-    {
+    else {
         parent[v] = u;
         rank[u]++;
     }
 }
 
-// Modified Kruskal's MST function that returns the computed minimum cost.
-// The printOutput flag controls whether edge details are printed.
+// Modified Kruskal MST function that computes the MST and returns the total cost.
+// The printOutput flag controls whether the MST details are printed.
 float kruskalMST(int vertices, float edges[][3], int numEdges, bool printOutput = true)
 {
     qsort(edges, numEdges, sizeof(edges[0]), comparator);
@@ -93,14 +91,12 @@ float kruskalMST(int vertices, float edges[][3], int numEdges, bool printOutput 
         cout << "-----------------------------------\n";
     }
     
-    for (int i = 0; i < numEdges; i++)
-    {
+    for (int i = 0; i < numEdges; i++) {
         int v1 = findParent(parent, (int)edges[i][0]);
         int v2 = findParent(parent, (int)edges[i][1]);
         float wt = edges[i][2];
 
-        if (v1 != v2)
-        {
+        if (v1 != v2) {
             unionSet(v1, v2, parent, rank);
             minCost += wt;
             if (printOutput)
@@ -121,7 +117,7 @@ float kruskalMST(int vertices, float edges[][3], int numEdges, bool printOutput 
 
 int main()
 {
-    // Edge list data
+    // Define the edge list.
     float edges[][3] = 
     {
         {0, 1, 4.5}, {0, 20, 2.4}, {0, 21, 2.4}, {1, 2, 5.5}, {1, 3, 10.5},
@@ -138,12 +134,12 @@ int main()
     };
     int numEdges = sizeof(edges) / sizeof(edges[0]);
 
-    // Run the algorithm once with output (to show MST)
+    // Run Kruskal once with output.
     float initialCost = kruskalMST(NUM_VERTICES, edges, numEdges, true);
 
-    // Increase iterations to improve measurement precision.
+    // Run Kruskal repeatedly for performance measurement.
     const int iterations = 1000000;  // 1,000,000 iterations
-    volatile float dummyCost = 0.0f;  // prevent optimization
+    volatile float dummyCost = 0.0f;  // Prevent optimization.
     auto perfStart = chrono::steady_clock::now();
     for (int i = 0; i < iterations; i++) {
          dummyCost += kruskalMST(NUM_VERTICES, edges, numEdges, false);
@@ -154,16 +150,15 @@ int main()
     double avgDuration = totalDuration / iterations;
     cout << "\nTotal runtime for " << iterations << " iterations: " 
          << fixed << setprecision(6) << totalDuration << " seconds\n";
-    cout << "Average runtime per iteration: " << fixed << setprecision(9) 
-         << avgDuration << " seconds\n";
+    cout << "Average runtime per iteration: " 
+         << fixed << setprecision(9) << avgDuration << " seconds\n";
     cout.flush();
 
 #ifdef _WIN32
-    // Get CPU times using Windows API
+    // Get CPU times using Windows API.
     FILETIME creationTime, exitTime, kernelTime, userTime;
     double userSeconds = 0.0, kernelSeconds = 0.0;
-    if (GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime))
-    {
+    if (GetProcessTimes(GetCurrentProcess(), &creationTime, &exitTime, &kernelTime, &userTime)) {
          ULARGE_INTEGER uKernel, uUser;
          uKernel.LowPart = kernelTime.dwLowDateTime;
          uKernel.HighPart = kernelTime.dwHighDateTime;
@@ -173,44 +168,40 @@ int main()
          userSeconds = uUser.QuadPart / 10000000.0;
          cout << "User CPU time: " << userSeconds << " seconds\n";
          cout << "Kernel CPU time: " << kernelSeconds << " seconds\n";
-    }
-    else
-    {
+    } else {
          cout << "GetProcessTimes failed.\n";
     }
     double totalCPU = userSeconds + kernelSeconds;
-    double cpuPercent = (totalDuration > 0.0 ? (totalCPU / totalDuration) * 100.0 : 0.0);
-    cout << "% CPU used by process: " << fixed << setprecision(2) << cpuPercent << "%" << "\n";
+    // Normalize CPU usage by dividing by the number of logical processors.
+    SYSTEM_INFO sysInfo;
+    GetSystemInfo(&sysInfo);
+    int numProcessors = sysInfo.dwNumberOfProcessors;
+    double normalizedCpuPercent = (totalCPU / totalDuration) * 100.0 / numProcessors;
+    cout << "% CPU used by process (normalized to total capacity): " 
+         << fixed << setprecision(2) << normalizedCpuPercent << "%" << "\n";
 
-    // Ensure psapi.dll is loaded (try LoadLibrary if necessary)
+    // Load psapi.dll and obtain current memory usage.
     HMODULE hPsapi = GetModuleHandleA("psapi.dll");
     if (!hPsapi)
          hPsapi = LoadLibraryA("psapi.dll");
     typedef BOOL (WINAPI *LPFN_GetProcessMemoryInfo)(HANDLE, PPROCESS_MEMORY_COUNTERS, DWORD);
     LPFN_GetProcessMemoryInfo fnGetProcessMemoryInfo =
         (LPFN_GetProcessMemoryInfo)GetProcAddress(hPsapi, "GetProcessMemoryInfo");
-    if(fnGetProcessMemoryInfo != NULL)
-    {
+    if(fnGetProcessMemoryInfo != NULL) {
          PROCESS_MEMORY_COUNTERS pmc;
          pmc.cb = sizeof(pmc);
-         if(fnGetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc)))
-         {
+         if(fnGetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
              cout << "Current Memory usage: " << pmc.WorkingSetSize / 1024 << " kilobytes\n";
-         }
-         else
-         {
+         } else {
              cout << "Current Memory usage: not available (call failed)\n";
          }
-    }
-    else
-    {
+    } else {
          cout << "Current Memory usage: not available (function not loaded)\n";
     }
 #else
-    // Unix-like systems: use getrusage for CPU times and memory usage
+    // Unix-like systems: use getrusage for CPU and memory usage.
     struct rusage usage;
-    if(getrusage(RUSAGE_SELF, &usage) == 0)
-    {
+    if(getrusage(RUSAGE_SELF, &usage) == 0) {
         cout << "User CPU time: " << usage.ru_utime.tv_sec << "."
              << setfill('0') << setw(6) << usage.ru_utime.tv_usec << " seconds\n";
         cout << "System CPU time: " << usage.ru_stime.tv_sec << "."
@@ -220,9 +211,7 @@ int main()
         double cpuPercent = (totalDuration > 0.0 ? (totalCPU / totalDuration) * 100.0 : 0.0);
         cout << "% CPU used by process: " << fixed << setprecision(2) << cpuPercent << "%" << "\n";
         cout << "Max memory usage: " << usage.ru_maxrss << " kilobytes\n";
-    }
-    else
-    {
+    } else {
         perror("getrusage");
     }
 #endif
